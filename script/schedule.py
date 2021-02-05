@@ -12,35 +12,6 @@ parser.add_argument('--instance', type=str, default=DATA_DIR + "aaa1")
 args = parser.parse_args()
 
 
-def compute_data(instance):
-    f = open(instance, "r")
-    content = f.read()
-    f.close()
-
-    lines = content.split("\n")
-    array = []
-
-    for line in lines:
-        if line.startswith('#'):  # filter lines of comment
-            pass
-        else:
-            numbers = line.split(" ")
-            while numbers.count('') > 0:
-                numbers.remove('')
-            for j in range(len(numbers)):
-                numbers[j] = int(numbers[j])
-
-            if numbers != []:
-                array.append(numbers)
-
-    machines = np.matrix(array[1:])[:, ::2]
-    durations = np.matrix(array[1:])[:, 1::2]
-    nb_jobs = array[0][0]  # number of jobs
-    nb_machines = array[0][1]
-
-    return [nb_machines, nb_jobs, machines, durations]
-
-
 def get_naive_makespan(durations):
     return np.sum(durations)
 
@@ -113,7 +84,6 @@ def df_detailed_repr(nb_jobs, detailed_repr):
 
 def draw_gantt(nb_jobs, nb_machines, machines, durations, representation):
     today = date.today()
-    # print(detailed_repr[0][0])
     list_gantt = []
     for i in range(nb_jobs):
         for j in range(nb_machines):
@@ -129,3 +99,69 @@ def draw_gantt(nb_jobs, nb_machines, machines, durations, representation):
                        group_tasks=True)
 
     fig.show()
+
+
+# Returns true if this schedule is valid (no constraint is violated) */
+def isValid(nb_jobs, nb_machines, durations, task_with_machine, start_time):
+    durations = durations.tolist()
+    task_with_machine = task_with_machine.tolist()
+
+    # Overlapping tasks on job issues
+    for j in range(nb_jobs):
+        for t in range(1, nb_machines):
+            if start_time[j][t - 1] + durations[j][t - 1] > start_time[j][t]:
+                return False
+
+        # A job can't start before date 0
+        for t in range(nb_machines):
+            if start_time[j][t] < 0:
+                return False
+
+    # Overlapping machines issues
+    for machine in range(nb_machines):
+        for j1 in range(nb_jobs):
+            t1 = task_with_machine[j1][machine]
+            for j2 in range(j1 + 1, nb_jobs):
+                t2 = task_with_machine[j2][machine]
+
+                t1_first = start_time[j1][t1] + durations[j1][t1] <= start_time[j2][t2]
+                t2_first = start_time[j2][t2] + durations[j2][t2] <= start_time[j1][t1]
+
+                if not (t1_first or t2_first):
+                    return False
+
+    return True
+
+
+def compute_makespan(nb_jobs, nb_machines, durations, start_time):
+    makespan = -1
+    durations = durations.tolist()
+    for j in range(nb_jobs):
+        makespan = np.maximum(makespan, int(start_time[j][nb_machines - 1] + durations[j][nb_machines - 1]))
+    return makespan
+
+
+def end_time(start_time, duration):
+    return start_time + duration
+
+
+def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
+    critical_tasks = []
+    end_list = []
+    durations = durations.tolist()
+
+    for i in range(nb_jobs):
+        for j in range(nb_machines):
+            end_list.append(
+                ["Job " + str(i + 1) + " /op " + str(j + 1), durations[i][j], end_time(start_time[i][j], durations[i][j])])
+
+    endTime = int(makespan)
+    while endTime != 0:
+
+        for task in end_list:
+            if task[2] == endTime:
+                critical_tasks.append(task[0])
+                endTime -= task[1]
+                pass # Avoid double tasks in the critical path (two tasks which finish in the same time)
+
+    return critical_tasks
