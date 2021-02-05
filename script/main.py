@@ -7,6 +7,7 @@ from script.instance import compute_data
 from script.pert import pert_df
 from script.schedule import df_ordered_repr, random_solution, detailed_repr, df_detailed_repr, draw_gantt, \
     isValid, compute_makespan, critical_path
+from script.solvers import spt, sort_by_duration
 
 
 def main():
@@ -36,10 +37,21 @@ def main():
 
     makespan = compute_makespan(nb_jobs, nb_machines, durations, start_time)
     print("makespan --> " + str(makespan))
-    draw_gantt(nb_jobs, nb_machines, machines, durations, start_time)
+    # draw_gantt(nb_jobs, nb_machines, machines, durations, start_time)
 
     pert_df(nb_jobs, nb_machines, machines, start_time, durations)
     print("critical path --> " + str(critical_path(nb_jobs, nb_machines, durations, start_time, makespan)))
+
+    print("############### Solve ###############")
+    solution = spt(nb_jobs, nb_machines, machines, durations, df_solution)
+    print(solution)
+    df_solution = df_ordered_repr(solution, nb_machines)
+    print(df_solution)
+    start_time = detailed_repr(nb_jobs, nb_machines, df_solution, durations)
+    df_repr = df_detailed_repr(nb_jobs, start_time)
+    valid = isValid(nb_jobs, nb_machines, durations, machines, start_time)
+    print("\n Solution valid ? " + str(valid))
+    draw_gantt(nb_jobs, nb_machines, machines, durations, start_time)
 
 
 if __name__ == '__main__':
