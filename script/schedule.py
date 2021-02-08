@@ -78,7 +78,8 @@ def detailed_repr(nb_jobs, nb_machines, df_solution, durations):
 def df_detailed_repr(nb_jobs, detailed_repr):
     list_jobs = []
     [list_jobs.append('J' + str(x)) for x in range(1, nb_jobs + 1)]
-    df_repr_detail = pd.DataFrame(data=detailed_repr, index=list_jobs, columns=range(1, 4))
+    # df_repr_detail = pd.DataFrame(data=detailed_repr, index=list_jobs, columns=range(1, 4))
+    df_repr_detail = pd.DataFrame(data=detailed_repr, index=list_jobs)
     return df_repr_detail
 
 
