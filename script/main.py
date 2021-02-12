@@ -22,7 +22,7 @@ def main():
     # list_job_operation = random_solution(nb_machines, nb_jobs, machines)
     # # Create solution which works
     # # list_job_operation = [[(1, 1), (2, 2)], [(2, 1), (1, 2)], [(1, 3), (2, 3)]]
-    # # list_job_operation = [[(2, 2), (1, 1)], [(2, 1), (1, 2)], [(1, 3), (2, 3)]]
+    # list_job_operation = [[(2, 2), (1, 1)], [(2, 1), (1, 2)], [(1, 3), (2, 3)]]
     # df_solution = df_ordered_repr(list_job_operation, nb_machines)
     # print("Resource order representation")
     # print(df_solution)
@@ -43,14 +43,24 @@ def main():
     # print("critical path --> " + str(critical_path(nb_jobs, nb_machines, durations, start_time, makespan)))
 
     print("############### Solve ###############")
-    solution = spt(nb_jobs, nb_machines, machines, durations)
-    print(solution)
+    # solution = lrpt(nb_jobs, nb_machines, machines, durations)
+    # print(solution)
+    solution = [[(1,2), (4,2), (5,5), (3,4), (6,4), (2,5)],
+                [(6,1),(4,1),(1,3),(2,1),(5,2),(3,5)],
+                [(1,1),(3,1),(4,3),(2,2),(5,1), (6,6)],
+                [(6,2),(3,2),(4,4),(1,4),(5,6),(2,6)],
+                [(1,6),(4,5),(5,3), (3,6), (2,3), (6,5)],
+                [(1,5),(3,3),(5,4),(6,3),(4,6),(2,4)]]
     df_solution = df_ordered_repr(solution, nb_machines)
     print(df_solution)
     start_time = detailed_repr(nb_jobs, nb_machines, df_solution, durations)
+    print(start_time)
     df_repr = df_detailed_repr(nb_jobs, start_time)
+    print(df_repr)
     valid = isValid(nb_jobs, nb_machines, durations, machines, start_time)
     print("\n Solution valid ? " + str(valid))
+    makespan = compute_makespan(nb_jobs, nb_machines, durations, start_time)
+    print("makespan --> " + str(makespan))
     draw_gantt(nb_jobs, nb_machines, machines, durations, start_time)
 
 

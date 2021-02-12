@@ -43,6 +43,7 @@ def df_ordered_repr(list_job_operation, nb_machines):
 
 
 def index_col(t, df):
+    print(df.columns[df.isin([t]).any()].tolist())
     col = df.columns[df.isin([t]).any()].tolist()[0]
     str_index = df.index[df[col].isin([t])].tolist()[0]
     index = str_index.replace("r", "")
@@ -61,13 +62,15 @@ def detailed_repr(nb_jobs, nb_machines, df_solution, durations):
         for job in range(1, nb_jobs + 1):
             for op in range(1, nb_machines + 1):
                 t = (job, op)
+                print(t)
                 ind, ressource, col = index_col(t, df_solution)
 
                 if (col == counter_ress[ressource]) & (op - 1 == counter_job[job - 1]):
                     repr_job[job - 1][op - 1] = max(ready_job[job - 1], ready_ress[ressource])
 
-                    ready_ress[ressource] = ready_ress[ressource] + durations[job - 1, op - 1] + ready_job[job - 1]
-                    ready_job[job - 1] = repr_job[job - 1][op - 1] + + durations[job - 1, op - 1]
+                    ready_ress[ressource] = ready_ress[ressource] + durations[job - 1, op - 1]
+                    # ready_ress[ressource] = ready_ress[ressource] + durations[job - 1, op - 1]
+                    ready_job[job - 1] = repr_job[job - 1][op - 1] + durations[job - 1, op - 1]
 
                     counter_ress[ressource] += 1
                     counter_job[job - 1] += 1
@@ -158,7 +161,7 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
     endTime = int(makespan)
     while endTime != 0:
-
+        # current_task =
         for task in end_list:
             if task[2] == endTime:
                 critical_tasks.append(task[0])
@@ -166,3 +169,5 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
                 pass # Avoid double tasks in the critical path (two tasks which finish in the same time)
 
     return critical_tasks
+
+
