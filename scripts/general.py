@@ -333,8 +333,53 @@ def in_list(c, classes):
 
 
 def get_pred_job(c, d, classes):
-    print(c, d)
     for i, sublist in enumerate(classes):
         if c == sublist[1] and d == sublist[2]:
             return sublist
     return -1
+
+
+############################################################
+
+def display_detailed_ressource(ressource):
+    for i, val in enumerate(ressource):
+        print("machine " + str(i) + " : " + str(val))
+
+
+############################################################
+
+def blocks_of_critical_path(machines, critical_path):
+    for i in critical_path:
+        job = i[1]
+        op = i[2]
+        # i = i.pop([3,4,5])
+        i.append(get_ressource(machines, job, op))
+
+    blocks = []
+    for i in range(len(critical_path) - 1):
+        current_task = critical_path[i]
+        next_task = critical_path[i + 1]
+        if current_task[6] == next_task[6]:
+            blocks.append([current_task, next_task])
+
+    memory = []
+    for i in range(len(critical_path) - 1):
+        cur = critical_path[i]
+        next = critical_path[i + 1]
+        if cur == next:
+            memory.append(cur)
+
+            if len(memory) <= 1:
+                memory.append(next)
+        else:
+            if len(memory) > 0:
+                blocks.append(memory)
+                memory = []
+
+    print("BLOCKS" + str(blocks))
+
+    return blocks
+
+
+def get_ressource(machines, job, operation):
+    return machines[job, operation]
