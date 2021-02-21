@@ -135,7 +135,7 @@ def gloutonne_est_spt(machines, durations, n, m):
         # On limites aux taches commencant au plus tot.
         # Trouver à quelle date peuvent commencer au plus tot chaque tache realisable
         for (j, o) in realisable:
-            # machine libre
+            # index libre
             mac = machines[j, o]
             if len(ressource[mac]) > 0:
                 jm, om = ressource[mac][-1]
@@ -216,7 +216,7 @@ def gloutonne_est_lrtp(machines, durations, n, m):
         # On limites aux taches commencant au plus tot.
         # Trouver à quelle date peuvent commencer au plus tot chaque tache realisable
         for (j, o) in realisable:
-            # machine libre
+            # index libre
             mac = machines[j, o]
             if len(ressource[mac]) > 0:
                 jm, om = ressource[mac][-1]

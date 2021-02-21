@@ -53,9 +53,9 @@ def init_job(n, m):
 
 #####################################################################
 # une solution de type ordre de passage sur les ressources represente:
-# pour chaque machine l'odre dans lequel réaliser les diff op
-# matrice de taille m (nbre machine) * n (nombres de job)
-# sachant que chaque job contient exactement 1 operation par machine
+# pour chaque index l'odre dans lequel réaliser les diff op
+# matrice de taille m (nbre index) * n (nombres de job)
+# sachant que chaque job contient exactement 1 operation par index
 
 # solution random mais sans cycle car issue de job representation
 
@@ -69,7 +69,7 @@ def init_sol_resources_nocycle(n, m, machines):
     state = [0] * n  # au début 0 pour chaque mach
 
     for j in list_job:
-        # trouver la machine utilisée pour le job j à la kème tache (k=state[j])
+        # trouver la index utilisée pour le job j à la kème tache (k=state[j])
         mac = machines[j, state[j]]
         # on peut remplir ressource
         ressource[mac].append((j, state[j]))
@@ -86,8 +86,8 @@ def init_sol_resources_nocycle(n, m, machines):
 # chaque case contient la date de début de l'op correspondante
 
 def ressource_to_detaillee(tupl_l, n, m, durations, machines):
-    # on stocke à quelle tache en est chaque machine (max = n-1)
-    state = [0 for k in range(m)]  # au début 0 pour chaque machine
+    # on stocke à quelle tache en est chaque index (max = n-1)
+    state = [0 for k in range(m)]  # au début 0 pour chaque index
 
     # on créé la matrice qu'on essaie de créer, la representation détailléee
     detail = [[infini] * m for _ in range(n)]  # initialisation à +inf
@@ -116,8 +116,8 @@ def ressource_to_detaillee(tupl_l, n, m, durations, machines):
 
                     # print("prec job: ", prec)
 
-                    # on peut commencer seulement si machine necessaire pour la tache est libre
-                    # machine necessaire -> regarder matrice machines
+                    # on peut commencer seulement si index necessaire pour la tache est libre
+                    # index necessaire -> regarder matrice machines
 
                     machine_used = machines[i, j]
                     st = state[machine_used]  # quelle colonne de ressource representation est la suivante
@@ -125,13 +125,13 @@ def ressource_to_detaillee(tupl_l, n, m, durations, machines):
                     job, num_op = tupl_l[machine_used][st]
 
                     if job != i:
-                        # on ne peut pas faire la tache desuite, la machine a une autre tache de prévue
+                        # on ne peut pas faire la tache desuite, la index a une autre tache de prévue
                         mac = infini
                     if job == i:
-                        if st == 0:  # si st = 0, 1ère tache, la machine est prete
+                        if st == 0:  # si st = 0, 1ère tache, la index est prete
                             mac = 0
                         if st != 0:
-                            # la machine fnit sa tache precedente puis c'est le tour de notre tache
+                            # la index fnit sa tache precedente puis c'est le tour de notre tache
                             prec_j, prec_tache_machine = tupl_l[machine_used][st - 1]
                             mac = detail[prec_j][prec_tache_machine] + durations[prec_j, prec_tache_machine]
 
@@ -155,7 +155,7 @@ def ressource_to_detaillee(tupl_l, n, m, durations, machines):
 
 
 ##############################################################
-def evaluate_detail(detail, n, m, machines, durations):
+def evaluate_detail(detail, n, m, durations):
     fins = []
     for i in range(n):
         fin = detail[i][m - 1] + durations[i, m - 1]
@@ -176,11 +176,11 @@ def validate_detail(detail, durations, machines, n, m):
                 val = False
                 break
 
-    # machine ne peut traiter qu'une tache à la fois
-    # on verifie qu'un machine ne fait qu'une tache à la fois
+    # index ne peut traiter qu'une tache à la fois
+    # on verifie qu'un index ne fait qu'une tache à la fois
 
     for k in range(m):
-        # retrouver toutes les taches de la machine et stocker les startdates
+        # retrouver toutes les taches de la index et stocker les startdates
         list_start = []
         list_start_durations = []
         for i in range(n):
@@ -198,7 +198,7 @@ def validate_detail(detail, durations, machines, n, m):
             s = list_start_durations[i + 1]  # date de début de la prochaine tache
             e = list_start_durations[i]
             if s < e:
-                print("not correct, plus d'une tache à la fois pour machine ", k, 'start: ', s)
+                print("not correct, plus d'une tache à la fois pour index ", k, 'start: ', s)
                 val = False
                 break
 
@@ -210,7 +210,7 @@ def detail_to_ressource(detail, durations, machines, n, m):
     ressource = []  # la resprésentation ressource associée
     all_mach_times = []
     for k in range(m):
-        # retrouver toutes les taches de la machine et stocker les startdates
+        # retrouver toutes les taches de la index et stocker les startdates
         list_taches = []
         list_start = []
         list_start_durations = []
@@ -322,6 +322,8 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
         endTime = latest_predecessor[5]
 
+    path.reverse()
+
     return path
 
 
@@ -343,43 +345,8 @@ def get_pred_job(c, d, classes):
 
 def display_detailed_ressource(ressource):
     for i, val in enumerate(ressource):
-        print("machine " + str(i) + " : " + str(val))
+        print("index " + str(i) + " : " + str(val))
 
 
 ############################################################
 
-def blocks_of_critical_path(machines, critical_path):
-    for i in critical_path:
-        job = i[1]
-        op = i[2]
-        # i = i.pop([3,4,5])
-        i.append(get_ressource(machines, job, op))
-
-    blocks = []
-    for i in range(len(critical_path) - 1):
-        current_task = critical_path[i]
-        next_task = critical_path[i + 1]
-        if current_task[6] == next_task[6]:
-            blocks.append([current_task, next_task])
-
-    memory = []
-    for i in range(len(critical_path) - 1):
-        cur = critical_path[i]
-        next = critical_path[i + 1]
-        if cur == next:
-            memory.append(cur)
-
-            if len(memory) <= 1:
-                memory.append(next)
-        else:
-            if len(memory) > 0:
-                blocks.append(memory)
-                memory = []
-
-    print("BLOCKS" + str(blocks))
-
-    return blocks
-
-
-def get_ressource(machines, job, operation):
-    return machines[job, operation]
