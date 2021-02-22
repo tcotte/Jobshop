@@ -87,16 +87,16 @@ def get_ressource(machines, job, operation):
 
 #################################################
 
-def swap(index, ressource, t1, t2):
+def swap(index, blocks, t1, t2):
     """
-    :param index:
-    :param ressource:
-    :param t1:
-    :param t2:
-    :return:
+    :param index: numéro du bloc où deux positions doivent être échangées
+    :param blocks: liste des blocks formés par le chemin critique
+    :param t1: 1ère position d'échange
+    :param t2: 2nde position d'échange
+    :return: liste avec deux positions échagnées
     """
-    ressource[index][t1], ressource[index][t2] = ressource[index][t2], ressource[index][t1]
-    return ressource[index]
+    blocks[index][t1], blocks[index][t2] = blocks[index][t2], blocks[index][t1]
+    return blocks[index]
 
 
 def neighbors(blocks, index):
