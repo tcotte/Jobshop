@@ -1,18 +1,39 @@
+"""
+    Module descent_solver.py
+    Module permettant d'implémenter un solver par métohde de descente
+"""
+
 import numpy as np
 import scripts.general as ge
 
 
 def blocks_of_critical_path(machines, critical_path):
-    for i in critical_path:
+    """
+    Un bloc représente une sous-séquence du chemin critique de sorte à ce que toutes les tâches qu'il contient s'exécutent sur la même machine.
+    Cette fonction identifie tous les blocs à partir d'une représentation ResourceOrder.
+    Envisager la solution dans la représentation de ResourceOrder
+     - machine 0 : (0,1) (1,2) (2,2)
+     - machine 1 : (0,2) (2,1) (1,1)
+     - machine 2 : ...
+
+     Le bloc avec : machine = 1, firstTask= 0 et lastTask = 1
+     Représente la séquence de tâches : [(0,2) (2,1)]
+
+    :param machines: tableau contenant la liste des ressources
+    :param critical_path: chemin critique
+    :return: le séquence de tâches dans l'ordre chronologique : [[(0,2) (2,1)], [(0,3), (1,4)]
+    """
+
+    for i in critical_path: # ajoute le numéro de la ressource en 6ème place du tuple
         job = i[1]
         op = i[2]
-        # i = i.pop([3,4,5])
         i.append(get_ressource(machines, job, op))
 
     blocks = []
     i = 0
     memory = []
 
+    # création des blocs
     while i < len(critical_path) - 1:
         current_task = critical_path[i]
         next_task = critical_path[i + 1]
@@ -34,6 +55,10 @@ def blocks_of_critical_path(machines, critical_path):
 
 
 def transform_blocks(blocks):
+    """
+    :param blocks: blocks où les tâches des listes des sous-séquences sont sous forme de tuples de taille 6
+    :return: blocks où les tâches des listes des sous-séquences sont sous forme de tuples de taille 2 (job,op)
+    """
     for ind_bloc, bloc in enumerate(blocks):
         for ind_task, task in enumerate(bloc):
             blocks[ind_bloc][ind_task] = transform_to_tuples(task)
@@ -42,22 +67,46 @@ def transform_blocks(blocks):
 
 
 def transform_to_tuples(task):
+    """
+    :param task: tâche sous forme de tuple de taille 6
+    :return: tâche sous forme de tuple de taille 2 (job, op)
+    """
     task_tuple = (task[1], task[2])
     return task_tuple
 
 
 def get_ressource(machines, job, operation):
+    """
+    :param machines: tableau comportant la liste des machines
+    :param job: job associé à une tâches
+    :param operation: numéro d'opération associé à une tâche
+    :return: ressource associée à la tache passée en paramètre à l'aide de "job" et "opération"
+    """
     return machines[job, operation]
 
 
 #################################################
 
 def swap(index, ressource, t1, t2):
+    """
+    :param index:
+    :param ressource:
+    :param t1:
+    :param t2:
+    :return:
+    """
     ressource[index][t1], ressource[index][t2] = ressource[index][t2], ressource[index][t1]
     return ressource[index]
 
 
 def neighbors(blocks, index):
+    """
+    Remarque : un bloc de taille 2, va renvoyer un voisin de taille : [(0,2) (2,1)]
+               un bloc de taille 3 et +, va renvoyer 2 voisin : [[(0,2), (2,1), (1,3)], [(2,1), (1,3), (0,2)]
+    :param blocks: liste des blocks formés par le chemin critique
+    :param index: index du block à partir du quel nous renverrons un/des voisins
+    :return: le ou les voisins associés à la taille du bloc.
+    """
     sol = []
     if len(blocks[index]) == 2:
         sol = swap(index, blocks, 0, 1)
@@ -76,6 +125,13 @@ def neighbors(blocks, index):
 
 
 def apply_on(solution, machines, block):
+    """
+    Appliquer l'échange sur l'ordre des ressources donné en le transformant en une nouvelle solution
+    :param solution: solution admissible pour le moment
+    :param machines: tableau comportant la liste des machines
+    :param block: liste des blocks formés par le chemin critique
+    :return: nouvelle solution générée à partir d'un voisin
+    """
     if len(block[0]) == 2:
         first_task = block[0]
 
@@ -103,6 +159,20 @@ def apply_on(solution, machines, block):
 
 
 def descent_solver(n, m, durations, init_sol, path, machines, early_stop=30):
+    """
+    Réalisation de la méthode de descente qui s'appuie sur l' exploration successive d’un voisinage de solutions.
+    La méthode de descente s'arrête s'il n'y a pas d'amélioration de la solution durant un nombre d'itération égal à
+    early_stop.
+    :param n: nombre de jobs
+    :param m: nombre des machines
+    :param durations: tableau contenant les listes des durées
+    :param init_sol: solution initiale, trouvée grâce à une méthode gloutonne
+    :param path: chemin critique
+    :param machines: tableau contenant les listes des machines
+    :param early_stop: entier par défaut à 30
+    :return: solution provenant de la méthode de descente
+    """
+
     blocks = blocks_of_critical_path(machines, path)
     interval = len(blocks)
     print("BLOCKS --> " + str(blocks))
