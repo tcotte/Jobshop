@@ -2,11 +2,13 @@
     Module descent_solver.py
     Module permettant d'implémenter un solver par métohde de descente
 """
+import time
 
 import numpy as np
 import scripts.general as ge
 import math
 import matplotlib.pyplot as plt
+import glouton as gl
 
 
 def blocks_of_critical_path(machines, critical_path):
@@ -25,10 +27,8 @@ def blocks_of_critical_path(machines, critical_path):
     """
 
     for i in critical_path:
-        job = i[1]
-        op = i[2]
-        # i = i.pop([3,4,5])
-        i.append(get_ressource(machines, job, op))
+        job = i[0]
+        op = i[1]
 
     blocks = []
     i = 0
@@ -38,7 +38,8 @@ def blocks_of_critical_path(machines, critical_path):
         current_task = critical_path[i]
         next_task = critical_path[i + 1]
 
-        if current_task[6] == next_task[6]:
+        if get_ressource(machines, current_task[0], current_task[1]) == get_ressource(machines, next_task[0],
+                                                                                      next_task[1]):
             memory.append(current_task)
 
         else:
@@ -51,7 +52,7 @@ def blocks_of_critical_path(machines, critical_path):
 
     print("BLOCKS" + str(blocks))
 
-    return transform_blocks(blocks)
+    return blocks
 
 
 def transform_blocks(blocks):
@@ -113,6 +114,7 @@ def neighbors(blocks, index):
     if len(blocks[index]) > 2:
         original_block = blocks[index].copy()
         sol = [blocks[index], original_block]
+
         # sol.append(swap(index, orginal_blocks, 0, 1))
         # swap(index, orginal_blocks, 1, 0)
         # sol.append(swap(index, l, -2, -1))
@@ -136,6 +138,7 @@ def apply_on(n, m, solution, machines, durations, block):
 
     elif len(block[0]) > 2:
         best_index = best_neighbor(n, m, solution, block, machines, durations)
+        print("index choose : ", best_index)
         return solution_generated_by_neighborhood(block[best_index], solution, machines)
 
     else:
@@ -178,7 +181,7 @@ def solution_generated_by_neighborhood(block, solution, machines):
     :param block: block généré par le voisinage (un seul bloc -> list)
     :param solution: solution étant admissible pour le moment
     :param machines: tableau comportant la liste des ressources nécessaires aux opérations
-    :return: nouvelle solution généré à l'aidedu bloc de voisinage
+    :return: nouvelle solution généré à l'aide du bloc de voisinage
     """
     first_task = block[0]
 
@@ -197,7 +200,30 @@ def solution_generated_by_neighborhood(block, solution, machines):
     return solution
 
 
-def descent_solver(n, m, durations, init_sol, path, machines, early_stop=30):
+def best_solution_loop(n, m, solution_init, blocks, machines, durations):
+    best_makespan = math.inf
+    best_solution = []
+
+    for index, block in enumerate(blocks):
+        swapped_block = neighbors(blocks, index)
+        # swapped_block = neighbors(blocks, index)
+        # best_nei = apply_on(n, m, solution_init, machines, durations, swapped_block)
+
+        # swapped_block = apply_on(n, m, solution_init, machines, durations, block)
+        # print("block ", index, " --> ", block, " ------ swapped ----- ", swapped_block)
+        solution = apply_on(n, m, solution_init, machines, durations, swapped_block)
+        detail = ge.ressource_to_detaillee(solution, n, m, durations, machines)
+        new_makespan = ge.evaluate_detail(detail, n, m, durations)
+        print("block ", index, " --> ", block, " ------ swapped ----- ", swapped_block, " MAKESPAN ", new_makespan)
+
+        if new_makespan < best_makespan:
+            best_solution = solution
+            best_makespan = new_makespan
+
+    return best_solution
+
+
+def descent_solver(n, m, durations, init_sol, path, machines, early_stop=1):
     """
     Réalisation de la méthode de descente qui s'appuie sur l' exploration successive d’un voisinage de solutions.
     La méthode de descente s'arrête s'il n'y a pas d'amélioration de la solution durant un nombre d'itération égal à
@@ -216,30 +242,35 @@ def descent_solver(n, m, durations, init_sol, path, machines, early_stop=30):
     print("BLOCKS --> " + str(blocks))
 
     counter = 0
-    solution = init_sol
+    best_solution = init_sol
 
-    ge.display_detailed_ressource(solution)
-
-    detail_init = ge.ressource_to_detaillee(solution, n, m, durations, machines)
+    detail_init = ge.ressource_to_detaillee(best_solution, n, m, durations, machines)
     makespan = ge.evaluate_detail(detail_init, n, m, durations)
 
     list_makespan = [makespan]
 
     while counter < early_stop:
-        block = neighbors(blocks, np.random.randint(low=0, high=interval))
-        print("BLOCK ", block)
-        solution = apply_on(n, m, solution, machines, durations, block)
 
+        blocks, _ = extractBlocksCriticalPath(path, n, m, machines)
+        print("BLOCK ", blocks)
+        # solution = apply_on(n, m, solution, machines, durations, block)
+        #
+        # detail = ge.ressource_to_detaillee(solution, n, m, durations, machines)
+        solution = best_solution_loop(n, m, best_solution, blocks, machines, durations)
         detail = ge.ressource_to_detaillee(solution, n, m, durations, machines)
 
         if ge.evaluate_detail(detail, n, m, durations) < makespan:
 
             makespan = ge.evaluate_detail(detail, n, m, durations)
-
-
+            print("Change makespan ==> ", makespan)
             ge.display_detailed_ressource(solution)
+            best_solution = solution
+            print("solution ", best_solution)
+            path = ge.critical_path(n, m, durations, detail, makespan)
+            print(path)
             counter = 0
         else:
+            print("No improvement")
             counter += 1
 
         list_makespan.append(makespan)
@@ -259,3 +290,125 @@ def plot_descent(list_makespan):
     plt.xlabel("Intéations")
     plt.ylabel("Makespan")
     plt.show()
+
+
+########### MATHILDE #############
+
+def extractBlocksCriticalPath(critiques, n, m, machines):
+    blocks = []
+
+    list_mac = []  # debug
+
+    bloc = []
+
+    prec_mac = machines[critiques[0]]  # initialisation
+    bloc.append(critiques[0])
+
+    list_mac.append(machines[critiques[0]])
+
+    for i in range(1, len(critiques)):
+        j, o = critiques[i]
+        if prec_mac == machines[j, o]:
+            bloc.append(critiques[i])
+        else:
+            blocks.append(bloc)  # on ajoute l'ancien bloc
+            bloc = [critiques[i]]  # on en commence un nouveau
+
+        prec_mac = machines[j, o]  # mise à jour machine prcedente
+        list_mac.append(machines[critiques[i]])
+
+    blocks.append(bloc)  # on ajoute le dernier bloc
+
+    blocks = [b for b in blocks if len(b) > 1]  # on enleve les blocs de taille <2
+
+    return blocks, list_mac
+
+
+#####################################################################
+# voisinage d'un bloc
+def voisinage_bloc(bloc, ressource, machines):
+    # on travaille sur un bloc, une seule machine est concernée
+    j, o = bloc[0]
+    mac = machines[j, o]
+    print("bloc", bloc)
+
+    new_sols = []  # on va stocker les nouvelles solutions associées aux voisins
+    # par construction du voisinage, les nouvelles solutions sont valides,
+    # car permutations sur taches d'une meme machine (et donc pas d'un meme job, pas de soucis de precedence)
+
+    # voisinage d'un bloc
+    liste_voisins = []
+
+    # permutation 2 premières
+    voisin1 = []
+    voisin1.extend(bloc)
+    voisin1[1], voisin1[0] = voisin1[0], voisin1[1]
+    liste_voisins.append(voisin1)
+
+    new_sol = ge.duplicate_ressource(ressource)
+    i = new_sol[mac].index((bloc[0]))
+    new_sol[mac][i], new_sol[mac][i + 1] = new_sol[mac][i + 1], new_sol[mac][i]
+    new_sols.append(new_sol)
+
+    if len(bloc) > 2:
+        # permutation 2 dernières
+        voisin2 = []
+        voisin2.extend(bloc)
+        voisin2[-1], voisin2[-2] = voisin2[-2], voisin2[-1]
+        liste_voisins.append(voisin2)
+
+        new_sol = ge.duplicate_ressource(ressource)
+        i = new_sol[mac].index((bloc[-1]))
+        new_sol[mac][i - 1], new_sol[mac][i] = new_sol[mac][i], new_sol[mac][i - 1]
+        new_sols.append(new_sol)
+
+    return liste_voisins, new_sols  # , bloc
+
+
+#####################################################################
+# Initialisation est_lrtp
+def descente_solver(machines, durations, n, m, timeout=3600):  # timeout en secondes
+    # initialisation
+    list_job, best_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
+
+    best_detail = ge.ressource_to_detaillee(best_sol, n, m, durations, machines)
+    meilleure = ge.evaluate_detail(best_detail, n, m,  durations)  # memo meilleure sol
+    critiques, times = ge.chemin_critique(best_detail, n, m, machines, durations, best_sol)
+
+    start = time.time()
+    while time.time() < start + timeout:
+        # blocks du chemin critique
+        blocks, list_mac = extractBlocksCriticalPath(critiques, n, m, machines)
+
+        # explorer voisinages successifs
+        # voisinage complet d'une solution est l'ensemble des voisinages de bloc
+        voisinage_complet = []
+        for i in range(len(blocks)):
+            b = blocks[i]
+            liste_voisins, new_sols = voisinage_bloc(b, best_sol, machines)
+            voisinage_complet.extend(new_sols)
+
+        # choisir meilleur voisin
+        best_voisin = math.inf
+        for s in voisinage_complet:
+            print(s)
+            new_detail = ge.ressource_to_detaillee(s, n, m, durations, machines)
+            new_eval = ge.evaluate_detail(new_detail, n, m, durations)  # memo meilleure sol
+            if new_eval < best_voisin:
+                best_voisin = new_eval
+                best_voisin_sol = s
+                best_voisin_detail = new_detail
+
+        # si meilleur que solution precedente, update meilleure sol
+        if best_voisin < meilleure:
+            meilleure = best_voisin
+            best_sol = best_voisin_sol
+            best_detail = best_voisin_detail
+            critiques, times = ge.chemin_critique(best_detail, n, m, machines, durations, best_sol)
+
+        # arret si pas d'amelioration ou time-out
+        else:  # best_voisin_eval >= meilleure:
+            print("no improvement")
+            break
+
+    return meilleure, best_sol

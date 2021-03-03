@@ -14,9 +14,10 @@ import scripts.solvers.descent_solver as ds
 
 def main():
     parser = argparse.ArgumentParser()
-    ROOT_DIR = "C:/Users/User/Documents/Valdom/Jobshop"
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    print(ROOT_DIR)
 
-    DATA_DIR = ROOT_DIR + "/instances/"
+    DATA_DIR = ROOT_DIR + "/../instances/"
     parser.add_argument('--instance', type=str, default="abz5")
     args = parser.parse_args()
 
@@ -44,18 +45,19 @@ def main():
     # Imlémentez les heuristiques STP et LRPT pour construire une solution représentée par ResourceOrder
 
     ### STP ###
-    list_job_stp, ressource_stp = gl.goutonne_stp(machines, durations, n, m)
+    # list_job_stp, ressource_stp = gl.goutonne_stp(machines, durations, n, m)
+    #
+    # ge.display_detailed_ressource(ressource_stp)
+    #
+    # detail_stp = ge.ressource_to_detaillee(ressource_stp, n, m, durations, machines)
+    #
+    # print("DETAIL" + str(detail_stp))
+    # print("stp: ", ge.evaluate_detail(detail_stp, n, m, durations))
+    # makespan_stp = ge.evaluate_detail(detail_stp, n, m, durations)
+    # path = ge.critical_path(n, m, durations, detail_stp, makespan_stp)
+    # # ge.draw_gantt(n, m, machines, durations, detail_stp)
+    # print("CRITICAL PATH ", path)
 
-    ge.display_detailed_ressource(ressource_stp)
-
-    detail_stp = ge.ressource_to_detaillee(ressource_stp, n, m, durations, machines)
-
-    print("DETAIL" + str(detail_stp))
-    print("stp: ", ge.evaluate_detail(detail_stp, n, m, durations))
-    makespan_stp = ge.evaluate_detail(detail_stp, n, m, durations)
-    path = ge.critical_path(n, m, durations, detail_stp, makespan_stp)
-    # ge.draw_gantt(n, m, machines, durations, detail_stp)
-    print("CRITICAL PATH ",path)
     # print(detail_stp)
 
     # blocks = ge.blocks_of_critical_path(machines, path)
@@ -71,7 +73,7 @@ def main():
     # block = ge.neighbors(blocks, 0)
     # print(ge.apply_on(ressource_stp, machines, block))
 
-    ds.descent_solver(n, m, durations, ressource_stp, path, machines)
+    # ds.descent_solver(n, m, durations, ressource_stp, path, machines)
 
     ### LRTP ###
     # list_job_lrtp, ressource_lrtp = gl.goutonne_lrtp(machines, durations, n, m)
@@ -86,10 +88,24 @@ def main():
     # detail_est_stp = ge.ressource_to_detaillee(ressource_est_stp, n, m, durations, machines)
     # print("est stp: ", ge.evaluate_detail(detail_est_stp, n, m, machines, durations))
     #
-    # ### EST LRTP ###
-    # list_job_est_lrtp, ressource_est_lrtp = gl.gloutonne_est_lrtp(machines, durations, n, m)
-    # detail_est_lrtp = ge.ressource_to_detaillee(ressource_est_lrtp, n, m, durations, machines)
-    # print("est lrtp: ", ge.evaluate_detail(detail_est_lrtp, n, m, machines, durations))
+    ### EST LRTP ###
+    list_job_est_lrtp, ressource_est_lrtp = gl.gloutonne_est_lrtp(machines, durations, n, m)
+    detail_est_lrtp = ge.ressource_to_detaillee(ressource_est_lrtp, n, m, durations, machines)
+    makespan_lrtp = ge.evaluate_detail(detail_est_lrtp, n, m, durations)
+    print("est lrtp: ", makespan_lrtp)
+
+    path = ge.critical_path(n, m, durations, detail_est_lrtp, makespan_lrtp)
+
+#############################
+    b, _ = ds.extractBlocksCriticalPath(path, n, m, machines)
+    print("Mathilde")
+    print(b)
+    makespan, _ = ds.descente_solver(machines, durations, n, m)
+    print("MAKESPAN :", makespan)
+##############################
+
+    ds.descent_solver(n, m, durations, ressource_est_lrtp, path, machines)
+
 
 
 if __name__ == '__main__':

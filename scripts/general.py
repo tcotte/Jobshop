@@ -293,6 +293,7 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
     path = []
     path.append(in_list(endTime, end_list))
+    endTime = in_list(endTime, end_list)[5]
     # print(current_task)
 
     while endTime != 0:
@@ -303,10 +304,6 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
         if current_task[2] > 0:
             task_pred_on_job = get_pred_job(current_task[1], current_task[2] - 1, end_list)
-            # print(task_pred_on_job)
-            # break
-
-            # latest_predecessor = []
 
             # if it was the delaying task, save it to predecessor
             if task_pred_on_job[5] == current_task[4]:
@@ -324,7 +321,7 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
     path.reverse()
 
-    return path
+    return get_tuples(path)
 
 
 def in_list(c, classes):
@@ -341,12 +338,85 @@ def get_pred_job(c, d, classes):
     return -1
 
 
+def get_tuples(path):
+    blocks = []
+    for i in path:
+        blocks.append((i[1], i[2]))
+    return blocks
+
+
 ############################################################
 
 def display_detailed_ressource(ressource):
     for i, val in enumerate(ressource):
         print("index " + str(i) + " : " + str(val))
 
+############################################################ MATHILDE
 
-############################################################
+def chemin_critique(detail, n, m, machines, durations, ressource):
+    # Calculer le chemin critique et retourner la liste de tâches qui le compose
+    makespan = evaluate_detail(detail, n, m,durations)
 
+    critiques = []  # contient des taches (j,o)
+    times = []  # contient les endtimes le long du chemin critique
+
+    longest_time = makespan
+    times.append(makespan)
+
+    # initialisation, on commence par la fin
+    for i in range(n):
+        if detail[i][m - 1] + durations[i, m - 1] == longest_time:
+            # tache i, m-1 est sur chemin_critique
+            tache = (i, m - 1)
+            critiques.append(tache)
+            longest_time -= durations[i, m - 1]
+            times.insert(0, longest_time)
+            break  # on ajoute qu'un élément si égalité
+
+    while longest_time != 0:
+
+        # print(critiques) #debug
+        last = critiques[0]
+
+        j, o = last
+        mac = machines[j, o]
+
+        # pred_job = [] #tache precedente du job et precedente de la machine
+
+        # tache precedente du job
+        if detail[j][o - 1] + durations[j, o - 1] == detail[j][o]:
+            tache = (j, o - 1)  # debug
+            critiques.insert(0, tache)
+            longest_time -= durations[j, o - 1]
+            times.insert(0, longest_time)
+            # print('job prec: ', critiques)
+
+        else:
+            # tache precedente de la machine
+            mac_index = ressource[mac].index(last)
+            jm, om = ressource[mac][mac_index - 1]  # tache recedente machine
+
+            if detail[jm][om] + durations[jm, om] == detail[j][o]:
+                critiques.insert(0, (jm, om))
+                longest_time -= durations[jm, om]
+                times.insert(0, longest_time)
+                # print('machine prec: ', critiques)
+
+            else:
+                print("no tache correspondante, probleme?")
+
+    # Methode PERT? TODO
+
+    return critiques, times
+
+
+#############################################################################
+def duplicate_ressource(resource):
+    new_resource = []
+    for r in resource:
+        r_new = []
+        for t in r:
+            r_new.append(t)
+        new_resource.append(r_new)
+
+    return new_resource
