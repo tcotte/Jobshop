@@ -278,7 +278,7 @@ def end_time(start_time, duration):
 
 ############################################################
 # TODO chemin critique, calcul et display
-def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
+def critical_path(nb_jobs, nb_machines, durations, start_time, makespan, machines, ressource):
     critical_tasks = []
     end_list = []
     durations = durations.tolist()
@@ -293,24 +293,30 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
 
     path = []
     path.append(in_list(endTime, end_list))
-    endTime = in_list(endTime, end_list)[5]
-    # print(current_task)
 
     while endTime != 0:
-        current_task = in_list(endTime, end_list)
-        # print(current_task)
+        current_task = path[-1]
 
         latest_predecessor = []
 
+        # get previous task in the job
         if current_task[2] > 0:
-            task_pred_on_job = get_pred_job(current_task[1], current_task[2] - 1, end_list)
+            task_pred_on_job = get_pred_task(current_task[1], current_task[2] - 1, end_list)
 
             # if it was the delaying task, save it to predecessor
             if task_pred_on_job[5] == current_task[4]:
                 latest_predecessor = task_pred_on_job
 
+        # if there is not predecessor currently, get previous task of the machine
         if not latest_predecessor:
-            latest_predecessor = in_list(current_task[4], end_list)
+            machine = get_ressource(machines, current_task[1], current_task[2])
+            index_previous_task = ressource[machine].index((current_task[1], current_task[2])) - 1
+            pred_task_machine = get_pred_task(ressource[machine][index_previous_task][0],
+                                              ressource[machine][index_previous_task][1], end_list)
+
+            # if it was the delaying task, save it to predecessor
+            if pred_task_machine[5] == current_task[4]:
+                latest_predecessor = pred_task_machine
 
         path.append(latest_predecessor)
 
@@ -324,6 +330,16 @@ def critical_path(nb_jobs, nb_machines, durations, start_time, makespan):
     return get_tuples(path)
 
 
+def get_ressource(machines, job, operation):
+    """
+     :param machines: tableau comportant la liste des machines
+     :param job: job associé à une tâches
+     :param operation: numéro d'opération associé à une tâche
+     :return: ressource associée à la tache passée en paramètre à l'aide de "job" et "opération"
+     """
+    return machines[job, operation]
+
+
 def in_list(c, classes):
     for i, sublist in enumerate(classes):
         if c == sublist[5]:
@@ -331,7 +347,7 @@ def in_list(c, classes):
     return -1
 
 
-def get_pred_job(c, d, classes):
+def get_pred_task(c, d, classes):
     for i, sublist in enumerate(classes):
         if c == sublist[1] and d == sublist[2]:
             return sublist
@@ -351,11 +367,12 @@ def display_detailed_ressource(ressource):
     for i, val in enumerate(ressource):
         print("index " + str(i) + " : " + str(val))
 
+
 ############################################################ MATHILDE
 
 def chemin_critique(detail, n, m, machines, durations, ressource):
     # Calculer le chemin critique et retourner la liste de tâches qui le compose
-    makespan = evaluate_detail(detail, n, m,durations)
+    makespan = evaluate_detail(detail, n, m, durations)
 
     critiques = []  # contient des taches (j,o)
     times = []  # contient les endtimes le long du chemin critique

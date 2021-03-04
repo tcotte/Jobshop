@@ -9,6 +9,7 @@ import scripts.general as ge
 import math
 import matplotlib.pyplot as plt
 import glouton as gl
+import copy
 
 
 def blocks_of_critical_path(machines, critical_path):
@@ -184,7 +185,6 @@ def solution_generated_by_neighborhood(block, solution, machines):
     :return: nouvelle solution généré à l'aide du bloc de voisinage
     """
     first_task = block[0]
-
     machine = get_ressource(machines, first_task[0], first_task[1])
     index_list = []
     for i in range(len(block)):
@@ -203,6 +203,12 @@ def solution_generated_by_neighborhood(block, solution, machines):
 def best_solution_loop(n, m, solution_init, blocks, machines, durations):
     best_makespan = math.inf
     best_solution = []
+    print("SOLUTION ", solution_init)
+    solution_intact = copy.deepcopy(solution_init)
+
+    list_solutions = []
+    for i in blocks:
+        list_solutions.append(solution_intact)
 
     for index, block in enumerate(blocks):
         swapped_block = neighbors(blocks, index)
@@ -211,7 +217,10 @@ def best_solution_loop(n, m, solution_init, blocks, machines, durations):
 
         # swapped_block = apply_on(n, m, solution_init, machines, durations, block)
         # print("block ", index, " --> ", block, " ------ swapped ----- ", swapped_block)
-        solution = apply_on(n, m, solution_init, machines, durations, swapped_block)
+        print(list_solutions[index])
+        solution = apply_on(n, m, list_solutions[index], machines, durations, swapped_block)
+
+        print("S : ",solution_intact)
         detail = ge.ressource_to_detaillee(solution, n, m, durations, machines)
         new_makespan = ge.evaluate_detail(detail, n, m, durations)
         print("block ", index, " --> ", block, " ------ swapped ----- ", swapped_block, " MAKESPAN ", new_makespan)
@@ -266,7 +275,7 @@ def descent_solver(n, m, durations, init_sol, path, machines, early_stop=1):
             ge.display_detailed_ressource(solution)
             best_solution = solution
             print("solution ", best_solution)
-            path = ge.critical_path(n, m, durations, detail, makespan)
+            path = ge.critical_path(n, m, durations, detail, makespan, machines, best_solution)
             print(path)
             counter = 0
         else:
@@ -396,6 +405,7 @@ def descente_solver(machines, durations, n, m, timeout=3600):  # timeout en seco
             new_eval = ge.evaluate_detail(new_detail, n, m, durations)  # memo meilleure sol
             if new_eval < best_voisin:
                 best_voisin = new_eval
+                print(new_eval)
                 best_voisin_sol = s
                 best_voisin_detail = new_detail
 
