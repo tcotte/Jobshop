@@ -95,29 +95,10 @@ def main():
     print("est lrtp: ", makespan_lrtp)
 
     path = ge.critical_path(n, m, durations, detail_est_lrtp, makespan_lrtp, machines, ressource_est_lrtp)
-    critiques, _ = ge.chemin_critique(detail_est_lrtp, n, m, machines, durations, ressource_est_lrtp)
-    print(critiques)
-    print(path)
 
-    error = 0
-    for i, l in zip(critiques, path):
-        if i != l:
-            print("///////////// ERROR //////////////////")
-            print(i, " -!= ", l)
-            error+=1
-    if error == 0:
-        print("///////////// SUCCESS //////////////////")
-
-
-#############################
-#     b, _ = ds.extractBlocksCriticalPath(path, n, m, machines)
-#     print("Mathilde")
-#     print(b)
-    makespan, _ = ds.descente_solver(machines, durations, n, m)
+    makespan, _ = ds.descent_solver(machines, durations, n, m, ressource_est_lrtp)
     print("MAKESPAN :", makespan)
-# ##############################
-#
-    ds.descent_solver(n, m, durations, ressource_est_lrtp, path, machines)
+
 
 
 
