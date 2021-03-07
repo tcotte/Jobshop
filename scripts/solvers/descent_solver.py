@@ -3,7 +3,7 @@
     Module permettant d'implémenter un solver par métohde de descente
 """
 import time
-
+import scripts.glouton as gl
 import numpy as np
 import scripts.general as ge
 import math
@@ -190,3 +190,148 @@ def choose_best_neighbor(all_neighbors, n, m, durations, machines):
             best_neighbor_solution = solution
             best_neighbor_detail = new_detail
     return best_neighbor, best_neighbor_solution, best_neighbor_detail
+
+
+#############################################################
+def voisinage_bloc_taboo(bloc, ressource, machines):
+    # on travaille sur un bloc, une seule machine est concernée
+    j, o = bloc[0]
+    mac = machines[j, o]
+    # print("bloc", bloc)
+
+    new_sols = []  # on va stocker les nouvelles solutions associées aux voisins
+    # par construction du voisinage, les nouvelles solutions sont valides, *** TODO
+    # car permutations sur taches d'une meme machine (et donc pas d'un meme job, pas de soucis de precedence)
+
+    # voisinage d'un bloc
+    liste_voisins = []
+    liste_interdit = []
+
+    # permutation 2 premières
+    voisin1 = []
+    voisin1.extend(bloc)
+    interdit = (voisin1[0][0], voisin1[1][0])  # on ne stocke que le numér de job, pas le numero d'op
+    voisin1[1], voisin1[0] = voisin1[0], voisin1[1]
+    liste_voisins.append(voisin1)
+    liste_interdit.append(interdit)
+
+    new_sol = ge.duplicate_ressource(ressource)
+    i = new_sol[mac].index((bloc[0]))
+    new_sol[mac][i], new_sol[mac][i + 1] = new_sol[mac][i + 1], new_sol[mac][i]
+    new_sols.append(new_sol)
+
+    if len(bloc) > 2:
+        # permutation 2 dernières
+        voisin2 = []
+        voisin2.extend(bloc)
+        interdit = (voisin2[-2][0], voisin2[-1][0])
+        voisin2[-1], voisin2[-2] = voisin2[-2], voisin2[-1]
+        liste_voisins.append(voisin2)
+        liste_interdit.append(interdit)
+
+        new_sol = ge.duplicate_ressource(ressource)
+        i = new_sol[mac].index((bloc[-1]))
+        new_sol[mac][i - 1], new_sol[mac][i] = new_sol[mac][i], new_sol[mac][i - 1]
+        new_sols.append(new_sol)
+
+    return liste_voisins, new_sols, liste_interdit
+
+
+################################### TABOU ######################################
+
+def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # timeout en secondes
+
+    # initialisation
+    list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
+
+    current_detail = ge.ressource_to_detaillee(current_sol, n, m, durations, machines)
+    meilleure = ge.evaluate_detail(current_detail, n, m, machines, durations)  # memo meilleure sol
+    critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
+
+    # Structure pour stocker les permutations taboo
+
+    # for all machines
+    # On crée une "matrice" avec toutes les taches associées à la machine, une par job (n)
+
+    # on note pour chaque permutation le numéro d’itérations à partir de laquelle le mouvement est autorisé
+    # initialisation à 0, aucune permutation n'est interdite
+    listes_taboo = [[[0] * n] * n] * m
+    # attention, le nombre de blocks va évoluer au cours des changements de solution avec la méthode tabou
+
+    start = time.time()
+
+    it = 0
+
+    while (time.time() < start + timeout and it < maxiter):
+
+        it += 1
+
+        # blocks du chemin critique
+        blocks, list_mac = blocks_from_critical_path(critiques, n, m, machines)
+
+        # print(critiques)
+        # print(blocks)
+
+        # explorer voisinages successifs
+        # voisinage complet d'une solution est l'ensemble des voisinages de chaque bloc
+
+        best_voisin = math.inf
+        # on va explorer pour tous les blocks, tous les voisins, s'ils sont non tabous on les évalue,
+        # on stocke le meilleur voisin non tabou, qui deviendra la solution courrante à la fin de l'exploration de tous blocks
+        # la permutation inverse au voisin choisi sera inerdite pour dureeTaboo itérations
+
+        for i in range(len(blocks)):
+            b = blocks[i]
+            liste_voisins, new_sols, liste_interdit = voisinage_bloc_taboo(b, current_sol, machines)
+
+            # trouver la machine pour ce bloc, pour pouvoir avoir la liste de taboo associée
+            # j, o = b[0]
+            mac = machines[b[0]]
+
+            for v in range(len(liste_voisins)):
+                # print(liste_interdit[v]) #debug
+                # print(i) #debug
+
+                # voisins exploré seulement si permutation possible ( <it )
+                # la permutation faite est l'inverse de l'interdite
+                if listes_taboo[mac][liste_interdit[v][1]][liste_interdit[v][0]] < it:  # tocheck
+
+                    s = new_sols[v]
+                    new_detail = ge.ressource_to_detaillee(s, n, m, durations, machines)
+                    new_eval = ge.evaluate_detail(new_detail, n, m, machines, durations)  # memo meilleure sol
+                    # print("new eval", new_eval)
+                    # print("best voisin", best_voisin)
+                    if new_eval < best_voisin:
+                        # print("new eval< best voisin")
+                        best_voisin = new_eval
+                        best_voisin_sol = s
+                        best_voisin_detail = new_detail
+                        interdit = liste_interdit[v]
+                        mac_best = mac
+
+        # mise à jour permutations interdites, uniquement une fois best voisin trouvé
+        listes_taboo[mac_best][interdit[0]][interdit[1]] = it + dureeTaboo
+
+        current_makespan = best_voisin
+        current_sol = best_voisin_sol
+        current_detail = best_voisin_detail
+        critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
+        # print("current_makesan", current_makespan)
+
+        # si solution courante est meilleure que meilleure solution, update meilleure sol ***
+        if current_makespan < meilleure:
+            meilleure = current_makespan
+            best_sol = current_sol
+            print("meilleure updated: ", meilleure)
+            best_detail = current_detail
+            val = ge.validate_detail(best_detail, durations, machines, n, m)
+            print("val: ", val)
+
+            # critiques, times = chemin_critique(best_detail, n, m, machines, durations, best_sol)
+
+        # arret si time-out ou k>maxiter, on continue meme si pas d'amélioration
+        # else: #best_voisin_eval >= meilleure:
+        # ("no improvement")
+        # break
+
+    return meilleure, best_sol

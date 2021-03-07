@@ -1,6 +1,9 @@
+from random import random
+
 import numpy as np
 import pandas as pd
 import math
+import hashlib
 
 infini = math.inf
 from datetime import date
@@ -261,16 +264,25 @@ def draw_gantt(nb_jobs, nb_machines, machines, durations, detail):
                                str(today + timedelta(days=representation[i][j]) + timedelta(days=int(durations[i, j]))),
                                'Job' + str(i + 1)])
 
-    df = pd.DataFrame(list_gantt,
-                      columns=['Task', 'Start', 'Finish', 'Resource'])
+    df = pd.DataFrame(list_gantt, columns=['Task', 'Start', 'Finish', 'Resource'])
 
-    fig = create_gantt(df, index_col='Resource', show_colorbar=True,
+    colours = []
+    for key in range(nb_jobs):
+        colour = col_from_string(str(key))
+        colours.append(f"#{colour}")
+
+    fig = create_gantt(df, colors=colours, index_col='Resource', show_colorbar=True,
                        group_tasks=True)
 
     fig.show()
 
 
-############################################################
+def col_from_string(inputString):
+    hashedString = hashlib.sha256(inputString.encode())
+    return hashedString.hexdigest()[len(hashedString.hexdigest()) - 6:]
+
+    ############################################################
+
 
 def end_time(start_time, duration):
     return start_time + duration

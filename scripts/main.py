@@ -5,11 +5,12 @@ import numpy as np
 import os
 import pandas as pd
 import math
-
+import time
 infini = math.inf
 import scripts.general as ge
 import scripts.glouton as gl
 import scripts.solvers.descent_solver as ds
+from itertools import chain
 
 
 def main():
@@ -18,88 +19,77 @@ def main():
     print(ROOT_DIR)
 
     DATA_DIR = ROOT_DIR + "/../instances/"
-    parser.add_argument('--instance', type=str, default="abz5")
+    parser.add_argument('--instance',  nargs='+', type=str, default="[abz5]")
+    parser.add_argument('--gantt', help="Draw Gantt chart")
+    parser.set_defaults(gantt=False)
     args = parser.parse_args()
 
-    filename = DATA_DIR + args.instance
+    for index, instance in enumerate(args.instance):
+        filename = DATA_DIR + instance
 
-    machines, durations, n, m = ge.generate_instance(filename, 4)  # we start at line 4 due to instance shape
+        machines, durations, n, m = ge.generate_instance(filename, 4)  # we start at line 4 due to instance shape
 
-    list_job, ressource = ge.init_sol_resources_nocycle(n, m,
-                                                        machines)  # initialisation random mais sans cycle (baséee sur repre job)
-
-    detail = ge.ressource_to_detaillee(ressource, n, m, durations, machines)
-    # print(detail)
-
-    makespan = ge.evaluate_detail(detail, n, m, durations)
-    print("random sol makespan: ", makespan)
-
-    val = ge.validate_detail(detail, durations, machines, n, m)
-    # print(val)
-
-    ressource2, all_mach_times = ge.detail_to_ressource(detail, durations, machines, n, m)
-
-    # TODO chemin critique
+    # TODO chemin Ajouter le tabou
 
     # HEURISTIQUES GLOUTONNES
     # Imlémentez les heuristiques STP et LRPT pour construire une solution représentée par ResourceOrder
 
-    ### STP ###
-    # list_job_stp, ressource_stp = gl.goutonne_stp(machines, durations, n, m)
-    #
-    # ge.display_detailed_ressource(ressource_stp)
-    #
-    # detail_stp = ge.ressource_to_detaillee(ressource_stp, n, m, durations, machines)
-    #
-    # print("DETAIL" + str(detail_stp))
-    # print("stp: ", ge.evaluate_detail(detail_stp, n, m, durations))
-    # makespan_stp = ge.evaluate_detail(detail_stp, n, m, durations)
-    # path = ge.critical_path(n, m, durations, detail_stp, makespan_stp)
-    # # ge.draw_gantt(n, m, machines, durations, detail_stp)
-    # print("CRITICAL PATH ", path)
+        dict_gl = {
+            "stp" : gl.gloutonne_stp,
+            "lrtp" : gl.gloutonne_lrtp,
+            "est_stp" : gl.gloutonne_est_spt,
+            "est_lrpt" : gl.gloutonne_est_lrtp
+        }
 
-    # print(detail_stp)
+        results = []
 
-    # blocks = ge.blocks_of_critical_path(machines, path)
-    # print("BLOCKS --> " + str(blocks))
+        for name, function in dict_gl.items():
+            # starting time
+            start = time.time()
 
-    # ressource_swapped = ge.swap(3, ressource_stp, 1,2)
-    # ge.display_detailed_ressource(ressource_swapped)
-    # for block in blocks:
-    #     print(len(block))
-    # print(len(blocks))
-    # # ge.neighbors([['Job 2 /op 8', 2, 8, 45, 1926, 1971, 9], ['Job 5 /op 5', 5, 5, 72, 1971, 2043, 9], ['Job 3 /op 2', 5, 5, 72, 1971, 2043, 9]])
-    # # blocks = [['Job 2 /op 8', 2, 8, 45, 1926, 1971, 9], ['Job 5 /op 5', 5, 5, 72, 1971, 2043, 9], ['Job 3 /op 2', 5, 5, 72, 1971, 2043, 9]]
-    # block = ge.neighbors(blocks, 0)
-    # print(ge.apply_on(ressource_stp, machines, block))
+            list_job, ressource = function(machines, durations, n, m)
+            detail = ge.ressource_to_detaillee(ressource, n, m, durations, machines)
+            makespan = ge.evaluate_detail(detail, n, m, durations)
 
-    # ds.descent_solver(n, m, durations, ressource_stp, path, machines)
+            # end time
+            end = time.time()
+            if args.gantt: ge.draw_gantt(n, m, machines, durations, detail)
+            results.append([end-start, makespan])
 
-    ### LRTP ###
-    # list_job_lrtp, ressource_lrtp = gl.goutonne_lrtp(machines, durations, n, m)
-    # detail_lrtp = ge.ressource_to_detaillee(ressource_lrtp, n, m, durations, machines)
-    # print("lrtp: ", ge.evaluate_detail(detail_lrtp, n, m, machines, durations))
-    #
-    # # Améliorez ces heuristiques : EST-SPT et EST-LRPT
-    # # Evaluez ces heuristiques sur les instances ft et la
-    #
-    # ### EST STP ###
-    # list_job_est_stp, ressource_est_stp = gl.gloutonne_est_spt(machines, durations, n, m)
-    # detail_est_stp = ge.ressource_to_detaillee(ressource_est_stp, n, m, durations, machines)
-    # print("est stp: ", ge.evaluate_detail(detail_est_stp, n, m, machines, durations))
-    #
+        makespan_minimum = math.inf
+        for list_results in results:
+            if list_results[1] < makespan_minimum:
+                makespan_minimum = list_results[1]
+
+        for list_results in results:
+            list_results.append((list_results[1]/makespan_minimum-1)*100)
+
+        if index == 0:
+            arrays = [
+                np.array(["stp", "stp", "stp", "lrtp", "lrtp", "lrtp", "est_stp", "est_stp", "est_stp", "est_lrtp", "est_lrtp", "est_lrtp"]),
+                np.array(["Temps (s)", "Makespan", "Ecart", "Temps (s)", "Makespan", "Ecart", "Temps (s)", "Makespan", "Ecart", "Temps (s)", "Makespan", "Ecart"]),
+                ]
+            # df_results = pd.DataFrame(list(chain.from_iterable(results)),  columns=arrays)
+            df_results = pd.DataFrame([j for sub in results for j in sub], index=arrays, columns=[instance])
+        else:
+            df_results.insert(index, instance, [j for sub in results for j in sub], allow_duplicates=False)
+
+    print(df_results)
+
     ### EST LRTP ###
-    list_job_est_lrtp, ressource_est_lrtp = gl.gloutonne_est_lrtp(machines, durations, n, m)
-    detail_est_lrtp = ge.ressource_to_detaillee(ressource_est_lrtp, n, m, durations, machines)
-    makespan_lrtp = ge.evaluate_detail(detail_est_lrtp, n, m, durations)
-    print("est lrtp: ", makespan_lrtp)
-
-    path = ge.critical_path(n, m, durations, detail_est_lrtp, makespan_lrtp, machines, ressource_est_lrtp)
-
-    makespan, _ = ds.descent_solver(machines, durations, n, m, ressource_est_lrtp)
-    print("MAKESPAN :", makespan)
-
-
+    # list_job_est_lrtp, ressource_est_lrtp = gl.gloutonne_est_lrtp(machines, durations, n, m)
+    # detail_est_lrtp = ge.ressource_to_detaillee(ressource_est_lrtp, n, m, durations, machines)
+    # makespan_lrtp = ge.evaluate_detail(detail_est_lrtp, n, m, durations)
+    # print("est lrtp: ", makespan_lrtp)
+    #
+    # path = ge.critical_path(n, m, durations, detail_est_lrtp, makespan_lrtp, machines, ressource_est_lrtp)
+    #
+    # makespan, solution_descent = ds.descent_solver(machines, durations, n, m, ressource_est_lrtp)
+    #
+    # detail_descent = ge.ressource_to_detaillee(solution_descent, n, m, durations, machines)
+    # ge.draw_gantt(n, m, machines, durations, detail_descent)
+    #
+    # print("MAKESPAN :", makespan)
 
 
 if __name__ == '__main__':

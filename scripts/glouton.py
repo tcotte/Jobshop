@@ -8,7 +8,7 @@ infini = math.inf
 # STP
 # SPT (Shortest Processing Time) : donne priorité à la tâche la plus courte ;
 
-def goutonne_stp(machines, durations, n, m):
+def gloutonne_stp(machines, durations, n, m):
     ressource = [[] for _ in range(m)]  # matrice m*n
     list_job = []  # pour representation par job
 
@@ -54,7 +54,7 @@ def goutonne_stp(machines, durations, n, m):
 # LRPT (Longest Remaining Processing Time) : donne la priorité à la tâche appartenant
 # au job ayant la plus grande durée
 
-def goutonne_lrtp(machines, durations, n, m):
+def gloutonne_lrtp(machines, durations, n, m):
     ressource = [[] for _ in range(m)]  # matrice m*n
     list_job = []  # pour representation par job
 
