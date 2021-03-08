@@ -7,6 +7,7 @@ from scripts.utils import compute_array_results, create_headers_df, create_excel
 
 
 def main():
+
     parser = argparse.ArgumentParser()
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     print(ROOT_DIR)
@@ -16,18 +17,18 @@ def main():
     parser.add_argument('--gantt', help="Draw Gantt chart")
     parser.set_defaults(gantt=False)
     parser.add_argument('--descent', help="Add descent solver after 'gloutonne' methods")
-    parser.set_defaults(descent=False)
+    parser.set_defaults(descent=True)
     parser.add_argument('--taboo', help="Add taboo solver after 'gloutonne' methods")
-    parser.set_defaults(taboo=False)
-    parser.add_argument('--timeout',  type=int, default=60,
-                        help="Parametrize the timeout for descend and taboo methods")
+    parser.set_defaults(taboo=True)
+    parser.add_argument('--timeout', type=int, default=60,
+                        help="Parametrize the timeout for descent and taboo methods")
     parser.add_argument('--iter', type=int, default=100,
                         help="Parametrize the maximum number of iteration for the taboo method")
     parser.add_argument('--time_taboo', type=int, default=5,
                         help="Parametrize the number of iteration during the inverse permutation is forbidden for the "
                              "taboo method")
-    parser.add_argument('--excel', help="Create an Excel with the dataframe results")
-    parser.set_defaults(excel=True)
+    parser.add_argument('--excel', help="Specify the name of the Excel filename (and False if you don't want the file generation")
+    parser.set_defaults(excel="output")
     args = parser.parse_args()
 
     for index, instance in enumerate(args.instance):
@@ -54,8 +55,8 @@ def main():
     df = df_results.round(1).sort_index(level=0).T
     print(df)
 
-    if args.excel: create_excel(df, ROOT_DIR, args.instance)
+    if args.excel is not False: create_excel(df, ROOT_DIR, args.excel)
+
 
 if __name__ == '__main__':
     main()
-

@@ -106,9 +106,9 @@ def create_headers_df(descent, taboo):
         arrays = arrays_for_headers(list_method)
 
     elif descent and taboo:
-        list_method = ["spt", "descent_spt", "taboo_spt", "lrtp", "descent_lrtp", "taboo_lrpt", "est_spt",
+        list_method = [" spt", "descent_spt", "taboo_spt", " lrtp", "descent_lrtp", "taboo_lrpt", " est_spt",
                        "descent_est_spt",
-                       "taboo_est_spt", "est_lrtp", "descent_est_lrpt", "taboo_est_lrpt"]
+                       "taboo_est_spt", " est_lrtp", "descent_est_lrpt", "taboo_est_lrpt"]
 
         arrays = arrays_for_headers(list_method)
 
@@ -120,9 +120,9 @@ def create_headers_df(descent, taboo):
     return arrays
 
 
-def create_excel(df, ROOT_DIR, instance_list):
+def create_excel(df, ROOT_DIR, filename):
     # create excel writer object
-    writer = pd.ExcelWriter(ROOT_DIR + "/../results/" + str(instance_list) + '.xlsx')
+    writer = pd.ExcelWriter(ROOT_DIR + "/../results/" + str(filename) + '.xlsx')
     # write dataframe to excel
     df.to_excel(writer)
     # save the excel
