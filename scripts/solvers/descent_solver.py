@@ -1,6 +1,6 @@
 """
     Module descent_solver.py
-    Module permettant d'implémenter un solver par métohde de descente
+    Module permettant d'implémenter un solver par méthode de descente
 """
 import time
 import scripts.glouton as gl

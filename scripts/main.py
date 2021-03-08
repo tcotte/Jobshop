@@ -3,8 +3,7 @@ import os
 import pandas as pd
 import scripts.general as ge
 import scripts.glouton as gl
-from scripts.utils import compute_array_results, create_headers_df
-
+from scripts.utils import compute_array_results, create_headers_df, create_excel
 
 
 def main():
@@ -27,6 +26,8 @@ def main():
     parser.add_argument('--time_taboo', type=int, default=5,
                         help="Parametrize the number of iteration during the inverse permutation is forbidden for the "
                              "taboo method")
+    parser.add_argument('--excel', help="Create an Excel with the dataframe results")
+    parser.set_defaults(excel=True)
     args = parser.parse_args()
 
     for index, instance in enumerate(args.instance):
@@ -50,15 +51,10 @@ def main():
         else:
             df_results.insert(index, instance, [j for sub in results for j in sub], allow_duplicates=True)
 
-    df = df_results.sort_index(level=0).T
-    df = df.round(1)
-
-    # for i in list(df.columns.levels[0]):
-    #     df[i]["Makespan"] = df[i]["Makespan"].astype('int64')
-    #     print(df[i]["Makespan"])
-
+    df = df_results.round(1).sort_index(level=0).T
     print(df)
 
+    if args.excel: create_excel(df, ROOT_DIR, args.instance)
 
 if __name__ == '__main__':
     main()
