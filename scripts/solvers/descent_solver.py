@@ -193,6 +193,7 @@ def choose_best_neighbor(all_neighbors, n, m, durations, machines):
 
 
 #############################################################
+#############################################################
 def voisinage_bloc_taboo(bloc, ressource, machines):
     # on travaille sur un bloc, une seule machine est concernée
     j, o = bloc[0]
@@ -237,7 +238,7 @@ def voisinage_bloc_taboo(bloc, ressource, machines):
     return liste_voisins, new_sols, liste_interdit
 
 
-################################### TABOU ######################################
+#########################################################################
 
 def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # timeout en secondes
 
@@ -245,7 +246,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
     list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
 
     current_detail = ge.ressource_to_detaillee(current_sol, n, m, durations, machines)
-    meilleure = ge.evaluate_detail(current_detail, n, m, machines, durations)  # memo meilleure sol
+    meilleure = ge.evaluate_detail(current_detail, n, m, durations)  # memo meilleure sol
     critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
 
     # Structure pour stocker les permutations taboo
@@ -267,7 +268,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         it += 1
 
         # blocks du chemin critique
-        blocks, list_mac = blocks_from_critical_path(critiques, n, m, machines)
+        blocks, list_mac = extractBlocksCriticalPath(critiques, n, m, machines)
 
         # print(critiques)
         # print(blocks)
@@ -298,7 +299,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
 
                     s = new_sols[v]
                     new_detail = ge.ressource_to_detaillee(s, n, m, durations, machines)
-                    new_eval = ge.evaluate_detail(new_detail, n, m, machines, durations)  # memo meilleure sol
+                    new_eval = ge.evaluate_detail(new_detail, n, m,  durations)  # memo meilleure sol
                     # print("new eval", new_eval)
                     # print("best voisin", best_voisin)
                     if new_eval < best_voisin:
@@ -335,3 +336,33 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         # break
 
     return meilleure, best_sol
+
+
+def extractBlocksCriticalPath(critiques, n, m, machines):
+    blocks = []
+
+    list_mac = []  # debug
+
+    bloc = []
+
+    prec_mac = machines[critiques[0]]  # initialisation
+    bloc.append(critiques[0])
+
+    list_mac.append(machines[critiques[0]])
+
+    for i in range(1, len(critiques)):
+        j, o = critiques[i]
+        if prec_mac == machines[j, o]:
+            bloc.append(critiques[i])
+        else:
+            blocks.append(bloc)  # on ajoute l'ancien bloc
+            bloc = [critiques[i]]  # on en commence un nouveau
+
+        prec_mac = machines[j, o]  # mise à jour machine prcedente
+        list_mac.append(machines[critiques[i]])
+
+    blocks.append(bloc)  # on ajoute le dernier bloc
+
+    blocks = [b for b in blocks if len(b) > 1]  # on enleve les blocs de taille <2
+
+    return blocks, list_mac
