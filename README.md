@@ -2,21 +2,6 @@
 
 # Jobshop
 
-Implémentation du projet
----
-
-Pour utiliser ce projet, la première chose à faire ets de le cloner. Ensuite, une fois qu'Anaconda 3 est intallé, il vous 
-faut créer un nouvel environnement virtuel Python 3.7 :
-```
-conda create -n jobshop_env python=3.7
-```
-
-Une fois que l'environnement est prêt, installez les librairies qui sont nécessaires pour le projet.
-```
-pip install -r requirements.txt
-```
-
-
 Introduction
 ---
 
@@ -55,3 +40,17 @@ Nous avons essayé d'implémenter deux grands types de méthodes approchées qui
 - Les méthodes "constructives" dans lesquelles figurent les méthodes gloutonnes.
 - Les méthodes de recherche locale dans lesquelles figurent les méthodes de descente.
 
+
+Implémentation du projet
+---
+
+Pour utiliser ce projet, la première chose à faire ets de le cloner. Ensuite, une fois qu'Anaconda 3 est intallé, il vous 
+faut créer un nouvel environnement virtuel Python 3.7 :
+```
+conda create -n jobshop_env python=3.7
+```
+
+Une fois que l'environnement est prêt, installez les librairies qui sont nécessaires pour le projet.
+```
+pip install -r requirements.txt
+```
