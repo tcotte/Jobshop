@@ -59,7 +59,7 @@ def compute_array_results(dict_methods, machines, durations, n, m, gantt, descen
 
         if taboo:
             start = time.time()
-            makespan, _ = ds.taboo_solver(machines, durations, n, m, timeout, time_taboo, max_iter)
+            makespan = ds.taboo_solver(machines, durations, n, m, timeout, time_taboo, max_iter)
             end = time.time()
             results.append([end - start, makespan])
 

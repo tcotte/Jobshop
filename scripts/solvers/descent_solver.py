@@ -335,7 +335,8 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         # ("no improvement")
         # break
 
-    return meilleure, best_sol
+    return meilleure
+    # return meilleure, best_sol
 
 
 def extractBlocksCriticalPath(critiques, n, m, machines):
