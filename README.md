@@ -14,11 +14,11 @@ trois types de contraintes :
 Dans le cadre de notre TP,  le temps ne sera pas une contrainte mais plutôt l'objectif. L'objectif de ce projet
 sera donc de minimiser le temps pour réaliser le projet.
 
-Le projet en question est découpé en *tâches* et en *opérations*. Il existe plusieurs tâches dans un projet, une tâche comporte
-une liste d'opérations dans laquelle chaque opérations est réalisée par une ressource (ou machine) différente. Une tâche
+Le projet en question est découpé en *jobs* et en *tâches*. Il existe plusieurs tâches dans un projet, un job comporte
+une liste de tâche dans lequelle chaque tâches est réalisée par une ressource (ou machine) différente. Un job
 nécessite un nombre d'opérations égal au nombre de machines. Une tâche est une entité élémentaire caractérisée par une durée
-et qui peut s'exécuter seulement sur une seule machine définie. Les opérations d'une doivent s'exécuter de manière
-chronologique, c'est à dire que chaque opération doit être exécuter après l'opération qui la précède dans la tâche.
+et qui peut s'exécuter seulement sur une seule machine définie. Les opérations d'un job doivent s'exécuter de manière
+chronologique, c'est à dire que chaque opération doit être exécuter après l'opération qui la précède dans le job.
 
 
 Dans ce TP, nous avons donc fait face à un problème d'ordonnancement lié à l'industrie. Pour représenter et comprendre ces 
