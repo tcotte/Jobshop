@@ -10,14 +10,17 @@ import math
 import matplotlib.pyplot as plt
 
 
-def plot_descent(list_makespan):
+def plot_descent(list_makespan, descent=True):
     """
     :param list_makespan: list des makespan au cours de la descente
     :return: Plot l'évolution du makespan
     """
     x = np.arange(len(list_makespan))
     plt.plot(x, list_makespan)
-    plt.title("Evolution du makespan au cours de la descente")
+    if descent:
+        plt.title("Evolution du makespan au cours de la descente")
+    else:
+        plt.title("Evolution du makespan au cours de la méthode tabou")
     plt.xlabel("Intéations")
     plt.ylabel("Makespan")
     plt.show()
@@ -108,7 +111,7 @@ def solution_generated_by_neighborhood(bloc, ressource, machines):
 
 #####################################################################
 # Initialisation est_lrtp
-def descent_solver(machines, durations, n, m, solution, timeout=3600, plot=True):  # timeout en secondes
+def descent_solver(machines, durations, n, m, solution, timeout=3600, plot=False):  # timeout en secondes
     """
     Réalisation de la méthode de descente qui s'appuie sur l' exploration successive d’un voisinage de solutions.
     La méthode de descente s'arrête s'il n'y a pas d'amélioration de la solution à l'itération suivante ou que le timeout
@@ -240,7 +243,7 @@ def voisinage_bloc_taboo(bloc, ressource, machines):
 
 #########################################################################
 
-def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # timeout en secondes
+def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter, plot=True):  # timeout en secondes
 
     # initialisation
     list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
@@ -248,7 +251,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
     current_detail = ge.ressource_to_detaillee(current_sol, n, m, durations, machines)
     meilleure = ge.evaluate_detail(current_detail, n, m, durations)  # memo meilleure sol
     critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
-
+    list_makespan = [meilleure]
     # Structure pour stocker les permutations taboo
 
     # for all machines
@@ -317,7 +320,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         current_sol = best_voisin_sol
         current_detail = best_voisin_detail
         critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
-        # print("current_makesan", current_makespan)
+        list_makespan.append(current_makespan)
 
         # si solution courante est meilleure que meilleure solution, update meilleure sol ***
         if current_makespan < meilleure:
@@ -335,7 +338,9 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         # ("no improvement")
         # break
 
-    return meilleure, best_sol
+    if plot: plot_descent(list_makespan, False)
+    return meilleure
+    # return meilleure, best_sol
 
 
 def extractBlocksCriticalPath(critiques, n, m, machines):
