@@ -1,5 +1,5 @@
 from random import random
-from tabulate import tabulate
+# from tabulate import tabulate
 import numpy as np
 import pandas as pd
 import math
@@ -159,7 +159,7 @@ def display_detail(detail):
     for i in range(len(detail)):
         list_job.append("J"+str(i))
     df = pd.DataFrame(detail, index = list_job)
-    print(df.to_markdown())
+    # print(df.to_markdown())
 
 
 def evaluate_detail(detail, n, m, durations):
@@ -374,7 +374,7 @@ def display_detailed_ressource(ressource):
         print("index " + str(i) + " : " + str(val))
         list_ressource.append("r"+str(i))
     df = pd.DataFrame(ressource, index=list_ressource)
-    print(df.to_markdown())
+    # print(df.to_markdown())
 
 
 def duplicate_ressource(resource):

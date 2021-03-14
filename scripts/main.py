@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import scripts.general as ge
 import scripts.glouton as gl
-from scripts.utils import compute_array_results, create_headers_df, create_excel
-
+from scripts.utils import compute_array_results, create_headers_df, create_excel, compute_exact
+import numpy as np
 
 def main():
 
@@ -29,6 +29,8 @@ def main():
                              "taboo method")
     parser.add_argument('--excel', help="Specify the name of the Excel filename (and False if you don't want the file generation")
     parser.set_defaults(excel="output")
+    parser.add_argument('--exact', help="Specify if you want the exacte solution from DOCPLEX")
+    parser.set_defaults(exact=False)
     args = parser.parse_args()
 
     for index, instance in enumerate(args.instance):
@@ -42,16 +44,31 @@ def main():
             "est_spt": gl.gloutonne_est_spt,
             "est_lrpt": gl.gloutonne_est_lrtp
         }
-
-        results = compute_array_results(dict_gl, machines, durations, n, m,
-                                        args.gantt, args.descent, args.taboo, args.timeout, args.iter, args.time_taboo)
+        if args.exact:
+            exact_makespan, exact_time = compute_exact(filename)
+            results = compute_array_results(dict_gl, machines, durations, n, m,
+                                            args.gantt, args.descent, args.taboo, args.timeout, args.iter, args.time_taboo, exact_makespan)
+        else:
+            results = compute_array_results(dict_gl, machines, durations, n, m,
+                                            args.gantt, args.descent, args.taboo, args.timeout, args.iter,
+                                            args.time_taboo)
 
         if index == 0:
             arrays = create_headers_df(args.descent, args.taboo)
+            if args.exact:
+                arrays[0] = np.concatenate((arrays[0], ["  exact", "  exact", "  exact"]), axis=0)
+                arrays[1] = np.concatenate((arrays[1], ["Temps (s)", "Makespan", "Ecart"]), axis=0)
+                results.append([exact_time, exact_makespan, 0])
+            print(results)
+
             df_results = pd.DataFrame([j for sub in results for j in sub], index=arrays, columns=[instance])
+            print(df_results)
         else:
+            if args.exact:
+                results.append([exact_time, exact_makespan, 0])
             df_results.insert(index, instance, [j for sub in results for j in sub], allow_duplicates=True)
 
+    print(df_results)
     df = df_results.round(1).sort_index(level=0).T
     print(df)
 

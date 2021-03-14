@@ -10,23 +10,33 @@ import scripts.general as ge
 import scripts.solvers.descent_solver as ds
 import pandas as pd
 
-def add_gap(results):
+
+def compute_exact(filename):
+    from scripts.exact import resolve_exact
+    makespan, time_cplex = resolve_exact(filename)
+    return makespan, time_cplex
+
+
+def add_gap(results, exact_makespan):
     """
     Add the gap between the best makespan and the current makespan
     :param results: 2D list (one list represents the results for one method) which each list is like : [time, makespan]
     :return: 2D list which each list is like : [time, makespan, gap]
     """
-    makespan_minimum = math.inf
-    for list_results in results:
-        if list_results[1] < makespan_minimum:
-            makespan_minimum = list_results[1]
+    if exact_makespan==False:
+        makespan_minimum = math.inf
+        for list_results in results:
+            if list_results[1] < makespan_minimum:
+                makespan_minimum = list_results[1]
+    else:
+        makespan_minimum = exact_makespan
 
     for list_results in results:
         list_results.append((list_results[1] / makespan_minimum - 1) * 100)
     return results
 
 
-def compute_array_results(dict_methods, machines, durations, n, m, gantt, descent, taboo, timeout, max_iter, time_taboo):
+def compute_array_results(dict_methods, machines, durations, n, m, gantt, descent, taboo, timeout, max_iter, time_taboo, exact_makespan=False):
     """
     :param dict_methods: "gloutonne" methods
     :param machines: array of different machines for each tasks
@@ -63,7 +73,7 @@ def compute_array_results(dict_methods, machines, durations, n, m, gantt, descen
             end = time.time()
             results.append([end - start, makespan])
 
-    return add_gap(results)
+    return add_gap(results, exact_makespan)
 
 
 def arrays_for_headers(list_method):
