@@ -111,7 +111,7 @@ def solution_generated_by_neighborhood(bloc, ressource, machines):
 
 #####################################################################
 # Initialisation est_lrtp
-def descent_solver(machines, durations, n, m, solution, timeout=3600, plot=False):  # timeout en secondes
+def descent_solver(machines, durations, n, m, solution, timeout=3600, plot=True):  # timeout en secondes
     """
     Réalisation de la méthode de descente qui s'appuie sur l' exploration successive d’un voisinage de solutions.
     La méthode de descente s'arrête s'il n'y a pas d'amélioration de la solution à l'itération suivante ou que le timeout

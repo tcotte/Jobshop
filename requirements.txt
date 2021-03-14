@@ -29,10 +29,6 @@ rsa==4.6
 scipy==1.4.1
 six==1.15.0
 tabulate
-tensorboard==2.2.2
-tensorboard-plugin-wit==1.7.0
-tensorflow==2.2.0
-tensorflow-estimator==2.2.0
 tornado==6.1
 urllib3==1.26.3
 wincertstore==0.2

@@ -6,8 +6,8 @@ import scripts.glouton as gl
 from scripts.utils import compute_array_results, create_headers_df, create_excel, compute_exact
 import numpy as np
 
-def main():
 
+def main():
     parser = argparse.ArgumentParser()
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     print(ROOT_DIR)
@@ -27,7 +27,8 @@ def main():
     parser.add_argument('--time_taboo', type=int, default=5,
                         help="Parametrize the number of iteration during the inverse permutation is forbidden for the "
                              "taboo method")
-    parser.add_argument('--excel', help="Specify the name of the Excel filename (and False if you don't want the file generation")
+    parser.add_argument('--excel',
+                        help="Specify the name of the Excel filename (and False if you don't want the file generation")
     parser.set_defaults(excel="output")
     parser.add_argument('--exact', help="Specify if you want the exacte solution from DOCPLEX")
     parser.set_defaults(exact=False)
@@ -47,7 +48,8 @@ def main():
         if args.exact:
             exact_makespan, exact_time = compute_exact(filename)
             results = compute_array_results(dict_gl, machines, durations, n, m,
-                                            args.gantt, args.descent, args.taboo, args.timeout, args.iter, args.time_taboo, exact_makespan)
+                                            args.gantt, args.descent, args.taboo, args.timeout, args.iter,
+                                            args.time_taboo, exact_makespan)
         else:
             results = compute_array_results(dict_gl, machines, durations, n, m,
                                             args.gantt, args.descent, args.taboo, args.timeout, args.iter,

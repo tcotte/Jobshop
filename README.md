@@ -44,13 +44,19 @@ Nous avons essayé d'implémenter deux grands types de méthodes approchées qui
 Implémentation du projet
 ---
 
-Pour utiliser ce projet, la première chose à faire ets de le cloner. Ensuite, une fois qu'Anaconda 3 est intallé, il vous 
+Pour utiliser ce projet, la première chose à faire est de le cloner. Ensuite, une fois qu'Anaconda 3 est intallé, il vous 
 faut créer un nouvel environnement virtuel Python 3.7 :
 ```
 conda create -n jobshop_env python=3.7
 ```
 
-Une fois que l'environnement est prêt, installez les librairies qui sont nécessaires pour le projet.
+Une fois que l'environnement est prêt, installez les librairies qui sont nécessaires pour le projet. Dans le cas où vous
+n'utiliserez que les méta-heuristiques, n'installez pas la librairie DOCPLEX.
 ```
 pip install -r requirements.txt
+```
+Dans le cas où vous voulez aussi utiliser les méthodes exactes, installez-la, puis installez toutes les librairies qui 
+vont avec dans votre nouvel environnement virtuel Python :
+```
+pip install -r requirements_cplex.txt
 ```
