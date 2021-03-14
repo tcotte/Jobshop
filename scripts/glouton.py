@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import scripts.general as ge
 
 infini = math.inf
 
@@ -45,8 +46,7 @@ def gloutonne_stp(machines, durations, n, m):
             # print((j,o+1)) #debug
             realisable.append((j, o + 1))
 
-    # print(realisees) #debug
-    # print(len(realisees)) #debug
+    ge.display_detailed_ressource(ressource)
     return list_job, ressource
 
 

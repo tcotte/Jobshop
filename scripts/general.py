@@ -1,5 +1,5 @@
 from random import random
-
+from tabulate import tabulate
 import numpy as np
 import pandas as pd
 import math
@@ -40,7 +40,6 @@ def generate_instance(filename, start):
     return machines, durations, n, m
 
 
-#####################################################################
 # init avec job representation
 # permutation avec m valeures pour chaque job (n jobs)
 def init_job(n, m):
@@ -54,7 +53,6 @@ def init_job(n, m):
     return list_job
 
 
-#####################################################################
 # une solution de type ordre de passage sur les ressources represente:
 # pour chaque index l'odre dans lequel réaliser les diff op
 # matrice de taille m (nbre index) * n (nombres de job)
@@ -82,7 +80,6 @@ def init_sol_resources_nocycle(n, m, machines):
     return list_job, ressource
 
 
-###################################################################################################
 # on va passer de la representation par ressource à la representation détaillée
 # la representation détaillée: matrice de n lignes (nombre de job) et m colonnes (nbre machines)
 # la jeme colonne correspond a la jieme op pour le job en question
@@ -154,10 +151,17 @@ def ressource_to_detaillee(tupl_l, n, m, durations, machines):
             print("no move")
             break
 
+    # display_detail(detail)
     return detail
 
+def display_detail(detail):
+    list_job = []
+    for i in range(len(detail)):
+        list_job.append("J"+str(i))
+    df = pd.DataFrame(detail, index = list_job)
+    print(df.to_markdown())
 
-##############################################################
+
 def evaluate_detail(detail, n, m, durations):
     fins = []
     for i in range(n):
@@ -167,7 +171,6 @@ def evaluate_detail(detail, n, m, durations):
     return max(fins)
 
 
-###############################################################
 def validate_detail(detail, durations, machines, n, m):
     val = True  # initialisation à valider = True, si une contrainte est violée, on passe à False et on arrete
 
@@ -207,8 +210,6 @@ def validate_detail(detail, durations, machines, n, m):
 
     return val
 
-
-###########################################################################################
 def detail_to_ressource(detail, durations, machines, n, m):
     ressource = []  # la resprésentation ressource associée
     all_mach_times = []
@@ -238,7 +239,6 @@ def detail_to_ressource(detail, durations, machines, n, m):
     return ressource, all_mach_times
 
 
-#####################################################
 def list_to_npmatrix(detail):
     n = len(detail)
     m = len(detail[0])
@@ -251,7 +251,6 @@ def list_to_npmatrix(detail):
     return np_repr
 
 
-#####################################################################
 def draw_gantt(nb_jobs, nb_machines, machines, durations, detail):
     representation = list_to_npmatrix(detail)
 
@@ -281,15 +280,11 @@ def col_from_string(inputString):
     hashedString = hashlib.sha256(inputString.encode())
     return hashedString.hexdigest()[len(hashedString.hexdigest()) - 6:]
 
-    ############################################################
-
 
 def end_time(start_time, duration):
     return start_time + duration
 
 
-############################################################
-# TODO chemin critique, calcul et display
 def critical_path(nb_jobs, nb_machines, durations, start_time, makespan, machines, ressource):
     critical_tasks = []
     end_list = []
@@ -373,14 +368,15 @@ def get_tuples(path):
     return blocks
 
 
-############################################################
-
 def display_detailed_ressource(ressource):
+    list_ressource = []
     for i, val in enumerate(ressource):
         print("index " + str(i) + " : " + str(val))
+        list_ressource.append("r"+str(i))
+    df = pd.DataFrame(ressource, index=list_ressource)
+    print(df.to_markdown())
 
 
-#############################################################################
 def duplicate_ressource(resource):
     new_resource = []
     for r in resource:
@@ -392,8 +388,6 @@ def duplicate_ressource(resource):
     return new_resource
 
 
-#############################################################################
-# TODO chemin critique, calcul et display
 def chemin_critique(detail, n, m, machines, durations, ressource):
     # Calculer le chemin critique et retourner la liste de tâches qui le compose
     makespan = evaluate_detail(detail, n, m, durations)

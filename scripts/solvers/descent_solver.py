@@ -246,8 +246,8 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
     list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
 
     current_detail = ge.ressource_to_detaillee(current_sol, n, m, durations, machines)
-    best_makespan = ge.evaluate_detail(current_detail, n, m, durations)  # memo meilleur makespan
-    path = ge.critical_path(n, m, durations, current_detail, best_makespan, machines, current_sol)
+    meilleure = ge.evaluate_detail(current_detail, n, m, durations)  # memo meilleure sol
+    critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
 
     # Structure pour stocker les permutations taboo
 
@@ -268,7 +268,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         it += 1
 
         # blocks du chemin critique
-        blocks, list_mac = extractBlocksCriticalPath(path, n, m, machines)
+        blocks, list_mac = extractBlocksCriticalPath(critiques, n, m, machines)
 
         # print(critiques)
         # print(blocks)
@@ -299,7 +299,7 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
 
                     s = new_sols[v]
                     new_detail = ge.ressource_to_detaillee(s, n, m, durations, machines)
-                    new_eval = ge.evaluate_detail(new_detail, n, m,  durations)  # memo meilleure sol
+                    new_eval = ge.evaluate_detail(new_detail, n, m, durations)  # memo meilleure sol
                     # print("new eval", new_eval)
                     # print("best voisin", best_voisin)
                     if new_eval < best_voisin:
@@ -316,20 +316,26 @@ def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter):  # ti
         current_makespan = best_voisin
         current_sol = best_voisin_sol
         current_detail = best_voisin_detail
-        path, _ = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
-
+        critiques, times = ge.chemin_critique(current_detail, n, m, machines, durations, current_sol)
         # print("current_makesan", current_makespan)
 
         # si solution courante est meilleure que meilleure solution, update meilleure sol ***
-        if current_makespan < best_makespan:
-            best_makespan = current_makespan
+        if current_makespan < meilleure:
+            meilleure = current_makespan
             best_sol = current_sol
-            print("meilleure updated: ", best_makespan)
+            print("meilleure updated: ", meilleure)
             best_detail = current_detail
             val = ge.validate_detail(best_detail, durations, machines, n, m)
             print("val: ", val)
 
-    return best_makespan, best_sol
+            # critiques, times = chemin_critique(best_detail, n, m, machines, durations, best_sol)
+
+        # arret si time-out ou k>maxiter, on continue meme si pas d'amélioration
+        # else: #best_voisin_eval >= meilleure:
+        # ("no improvement")
+        # break
+
+    return meilleure, best_sol
 
 
 def extractBlocksCriticalPath(critiques, n, m, machines):

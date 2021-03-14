@@ -17,9 +17,9 @@ def main():
     parser.add_argument('--gantt', help="Draw Gantt chart")
     parser.set_defaults(gantt=False)
     parser.add_argument('--descent', help="Add descent solver after 'gloutonne' methods")
-    parser.set_defaults(descent=True)
+    parser.set_defaults(descent=False)
     parser.add_argument('--taboo', help="Add taboo solver after 'gloutonne' methods")
-    parser.set_defaults(taboo=True)
+    parser.set_defaults(taboo=False)
     parser.add_argument('--timeout', type=int, default=60,
                         help="Parametrize the timeout for descent and taboo methods")
     parser.add_argument('--iter', type=int, default=100,

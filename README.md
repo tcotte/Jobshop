@@ -54,3 +54,15 @@ Une fois que l'environnement est prêt, installez les librairies qui sont néces
 ```
 pip install -r requirements.txt
 ```
+
+
+|    | 0      | 1      |
+|:---|:-------|:-------|
+| **r0** | (1, 1) | (0, 0) |
+| **r1** | (1, 0) | (0, 1) |
+| **r2** | (0, 2) | (1, 2) |
+
+|    |   0 |   1 |   2 |
+|:---|----:|----:|----:|
+| **J0** |   0 |   3 |   9 |
+| **J1** |   0 |   3 |   5 |
