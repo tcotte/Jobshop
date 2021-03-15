@@ -67,7 +67,7 @@ python main.py -h
 
 Documentation argument parser
 ---
-La documentation permet de voir l'étendue des possibilité à travers les arguments parser
+La documentation permet de voir l'étendue des possibilités à travers les arguments parser
 ```
 optional arguments:
   -h, --help            show this help message and exit
