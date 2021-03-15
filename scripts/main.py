@@ -13,7 +13,7 @@ def main():
     print(ROOT_DIR)
 
     DATA_DIR = ROOT_DIR + "/../instances/"
-    parser.add_argument('--instance', nargs='+', type=str, default=["abz5"])
+    parser.add_argument('--instance', nargs='+', type=str, default=["abz5"], help="Instances list")
     parser.add_argument('--gantt', help="Draw Gantt chart")
     parser.set_defaults(gantt=False)
     parser.add_argument('--descent', help="Add descent solver after 'gloutonne' methods")

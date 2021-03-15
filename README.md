@@ -40,17 +40,51 @@ pip install -r requirements_cplex.txt
 ```
 
 
-Exécution
+Exécution du code
 ---
 
-Pour lancer notre code, il faut *** :
+Pour lancer notre code, lancer le script à partir d'un ide ou d'une commande Python :
 ```
-main ...***
+cd scripts
+.../scripts> python main.py
 ```
 
-Un fichier excel sera créé avec un recapitulatif des résulats obtenus.
-Vous pouvez obtenir des informations sur les arguments grace au help ***
+Plusieurs arguments sont disponibles pour lancer le script :
+- Possibilité de trouver une méthode exacte à l'aide de DOCPLEX (vous ne pourrez l'utiliser que si vous avez DOCPLEX et
+que votre environnement Python contient `requirements_cplex.txt`)
+- Possibilité d'utiliser plusieurs instances à la fois.
+- Possibilité de créer un Excel qui récapitule les résultats obtenus.
 
-Si vous souhaiter obtenir des graphes sur l'évolution de la descnete ou un diagramme de Gantt d'une solution, vous pouvez ...***
+Dans ce projet, il existe de nombreuses possibilités (plus que ce que nous avons déjà citées) que vous pourrez obtenir 
+en utilisant les arguments parser, tel que :
+```
+python main.py --exact True --instance ft06 ft20 --descent True
+```
+Vous pouvez obtenir des informations sur les arguments grace au help en tappant :
+```
+python main.py -h
+```
+
+Documentation argument parser
+---
+La documentation permet de voir l'étendue des possibilité à travers les arguments parser
+```
+optional arguments:
+  -h, --help            show this help message and exit
+  --instance INSTANCE [INSTANCE ...]
+                        Instances list
+  --gantt GANTT         Draw Gantt chart
+  --descent DESCENT     Add descent solver after 'gloutonne' methods
+  --taboo TABOO         Add taboo solver after 'gloutonne' methods
+  --timeout TIMEOUT     Parametrize the timeout for descent and taboo methods
+  --iter ITER           Parametrize the maximum number of iteration for the
+                        taboo method
+  --time_taboo TIME_TABOO
+                        Parametrize the number of iteration during the inverse
+                        permutation is forbidden for the taboo method
+  --excel EXCEL         Specify the name of the Excel filename (and False if
+                        you don't want the file generation
+  --exact EXACT         Specify if you want the exacte solution from DOCPLEX
+```
 
 

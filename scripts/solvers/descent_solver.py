@@ -16,6 +16,7 @@ def plot_descent(list_makespan, descent=True):
     :return: Plot l'évolution du makespan
     """
     x = np.arange(len(list_makespan))
+    print("liste", str(list_makespan))
     plt.plot(x, list_makespan)
     if descent:
         plt.title("Evolution du makespan au cours de la descente")
@@ -243,10 +244,10 @@ def voisinage_bloc_taboo(bloc, ressource, machines):
 
 #########################################################################
 
-def taboo_solver(machines, durations, n, m, timeout, dureeTaboo, maxiter, plot=True):  # timeout en secondes
+def taboo_solver(current_sol, machines, durations, n, m, timeout, dureeTaboo, maxiter, plot=True):  # timeout en secondes
 
     # initialisation
-    list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
+    # list_job, current_sol = gl.gloutonne_est_lrtp(machines, durations, n, m)
 
     current_detail = ge.ressource_to_detaillee(current_sol, n, m, durations, machines)
     meilleure = ge.evaluate_detail(current_detail, n, m, durations)  # memo meilleure sol
